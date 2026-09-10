@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Controller
@@ -39,20 +41,30 @@ public class FuncionController {
             return "index";
         }
 
-        String spelResultado = spelEval.evaluate(buscar);
+        String REGEX = "^[a-zA-Z0-9]*$";
+        Pattern PATTERN = Pattern.compile(REGEX);
+        Matcher matcher = PATTERN.matcher(buscar);
+        boolean result = matcher.matches();
 
-        model.addAttribute("spelOutput", spelResultado);
+        if (result) {
+            String spelResultado = spelEval.evaluate(buscar);
 
-        if (!spelResultado.isBlank()) {
-            List<Funcion> resultados = funcionRepo.findAll().stream()
-                .filter(f -> f.getNombreFuncion() != null &&
-                             f.getNombreFuncion().toLowerCase().contains(spelResultado.toLowerCase()))
-                .collect(Collectors.toList());
-            model.addAttribute("resultados", resultados);
-            model.addAttribute("mensaje", "Resultados buscando por: " + spelResultado);
+            model.addAttribute("spelOutput", spelResultado);
+
+            if (!spelResultado.isBlank()) {
+                List<Funcion> resultados = funcionRepo.findAll().stream()
+                    .filter(f -> f.getNombreFuncion() != null &&
+                                f.getNombreFuncion().toLowerCase().contains(spelResultado.toLowerCase()))
+                    .collect(Collectors.toList());
+                model.addAttribute("resultados", resultados);
+                model.addAttribute("mensaje", "Resultados buscando por: " + spelResultado);
+            } else {
+                model.addAttribute("resultados", new ArrayList<Funcion>());
+                model.addAttribute("mensaje", "No se encontraron coincidencias.");
+            }
         } else {
             model.addAttribute("resultados", new ArrayList<Funcion>());
-            model.addAttribute("mensaje", "No se encontraron coincidencias.");
+            model.addAttribute("mensaje", "Hay símbolos no permitidos en la búsqueda.");
         }
 
         return "index";
