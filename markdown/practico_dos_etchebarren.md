@@ -9,7 +9,6 @@
 **3.** File Upload. </br>
 **4.** Server Side Template Injection. </br>
 **5.** Almacenamiento inseguro. </br>
-</br>
 
 ### 1. Inyección SQL
 #### 1.1 Introducción
@@ -143,8 +142,27 @@
 
 ### 5. Almacenamiento inseguro
 #### 5.1 Introducción
-&emsp; El almacenamiento inseguro de información se refiere una debilidad en la cual, infomración sensible es almacenada sin implementar medidas para protegerla. Por ejemplo, no controlar los permisos de lectura o escritura de diversos agentes sobre dichos datos.
+&emsp; El almacenamiento inseguro de información se refiere una debilidad donde información sensible es almacenada sin implementar medidas para protegerla. Por ejemplo, no controlar los permisos de lectura o escritura de diversos agentes sobre dichos datos.
 #### 5.2 Demostración de la presencia de la vulnerabilidad
+&emsp; En primer lugar, la plataforma nos pide regitrarnos. Luego de indicar nuestro usuario y nuestra contraseña, nuestra cuenta es creada y almacenada.
+
+![Pestaña de registro de CineBuscador](images/e5i1.png)
+&emsp; Luego de registrarnos, podemos iniciar sesión con nuestras nuevas credenciales. Es de destacar que la contraseña no debe ser de ningún largo particular ni contener caracteres especiales, lo cual también perjudica a la seguridad del sistema.
+
+&emsp; Una vez que iniciamos sesión, la plataforma nos devuelve nuestra contraseña encriptada.
+
+![CineBuscador luego de iniciar sesión con credenciales válidas](images/e5i2.png)
+
+&emsp; Más importante, si creamos otro usuario con la misma contraseña, podemos ver que la encriptación generada es la misma para ambos usuarios.
+
+![CineBuscador genera la misma encriptación para la misma contraseña](images/e5i3.png)
+
+```
+- usuario agos: iTwvIOv3zvvWa0BLicpEaA==
+- usuario agosdos: iTwvIOv3zvvWa0BLicpEaA==
+```
+
+&emsp; Solo con estas consideraciones podemos verificar que existe la debilidad de almacenamiento inseguro en el sistema. 
 
 #### 5.3 Análisis del código
 &emsp; En el archivo `EncryptionService.java` podemos encontrar varias vulnerabilidades que perjudican la seguridad de la aplicación.
@@ -167,11 +185,24 @@
 
 &emsp; Existe un método que permite acceder a la clave de encriptación, uno para sus bytes y uno para obtener su equivalente en hexadecimal.
 
+&emsp; Más allá de eso, el sistema tampoco pide al usuario una contraseña con ciertas consideraciones para aumentar la complejidad de la misma (como un largo mínimo, mayúsuculas, caracteres especiales, etc.). 
+
+&emsp; Asimismo, la clave de encriptación se encuentra embebida en el código fuente, por lo que cualquiera con acceso a este y a cualquier contraseña almacenada puede recuperar la contraseña original.
+
+&emsp; Finalmente, algoritmos de encriptación como AES ni siquiera son el estándar cuando se trata de contraseñas. Lo más recomendado es almacenar un hash de la contraseña y comparar este cada vez que se intente un inicio de sesión.
+
+&emsp; Con esto en cuenta, podemos comenzar la mitigación de la debilidad.
+
 #### 5.4 Mitigación
-&emsp; En primer lugar, cambiaría la encriptación reversible por una función de hash, de forma que la encriptación de las contraseñas no sea reversible. 
-&emsp; En primer lugar, la clave de encriptación debe ser guardada como una variable de entorno. En sistemas reales se utilizan servicios externos de gestión de claves. Para este caso, simplemente crearemos un archivo `.env` y lo dejaremos fuera del sistema de control de versión. 
+&emsp; En primer lugar, cambiaría la encriptación reversible por una función de hash. Para hacer esto podemos agregar a las dependencias el framework de seguridad y autenticación para Spring, Spring Security. El `pom.xml` queda de la siguiente manera:
+
+![Dependencias actualizadas](images/e5i4.png)
+
+&emsp; Luego de esto podemos actualizar el archivo `EncryptionService.java`, de modo que tenga un método para encriptar y otro para comparar las contraseñas ingresadas en los intentos de inicio de sesión y el hash original almacenado.
+
 &emsp; También deberemos cambiar la configuración de encriptación. Por ejemplo: `AES/GCM/PKCS7P`. A diferencia de ECB, GCM genera un vector de inicialización de modo que no haya patrones relevantes en la información encriptada generada por el proceso. Se recomienda que el IV sea de 12 bytes.
 &emsp; Por otro lado, debemos deshabilitar los métodos getters para la clave de encriptación en sí, su versión en hexadecimal y sus bytes.
+
 &emsp; Luego de implementar estos cambios podemos esperar un proceso de encriptación mas robusto y un sistema más resistente a ataques externos.
 
 #### 5.5 Fuentes
