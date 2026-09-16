@@ -89,17 +89,55 @@
 
 ### 3. File Upload
 #### 3.1 Introducción
-&emsp; 
+&emsp; Esta vulnerabilidad se aprovecha de la funcionalidad de carga de archivos. Cuando esta opción se encuentra configurada de forma errónea o conlleva pocas medidas de protección, se puede dar lugar a la ejecución remota de código malicioso en nuestros servidores.
 
 #### 3.2 Demostración de la presencia de la vulnerabilidad
-&emsp;
+&emsp; En primer lugar, debemos generar un archivo, en este caso `html` que nos dé una señal clara de que los contenidos de este se está ejecutando por el servidor. El siguiente archivo es un ejemplo:
+```html
+<html>
+    <head>
+        <title>
+            Probando
+        </title>
+    </head>
+    <body>
+        <script>
+            window.alert("Estoy adentro de tu servidor");
+        </script>
+    </body>
+</html>
+```
+&emsp; Si conseguimos abrir el archivo cargado, por ejemplo en una nueva pestaña o haciendo fuzzing, podemos ver el efecto que tiene:
+
+![Abrimos el afiche en una nueva pestaña](images/e3i1.png)
+![Alerta que demuestra que la vulnerabilidad existe en el sistema](images/e3i2.png)
+
+&emsp; Así como pudimos conseguir esto, ataques más sofisticados pueden conseguir una vulnerabilidad del tipo XSS o brindar acceso al atacante a una terminal remota que se conecte directamente con nuestro sistema.
 
 #### 3.3 Análisis del código
-&emsp;
+&emsp; En primer lugar, dentro de las plantillas `html` podemos ver que el elemento de tipo `input` acepta cualquier formato de archivo, lo cual es innecesario y peligroso. Solo debería aceptar archivos con extensiones como `.jpeg`, `.jpg`, `.png`, etc.
+
+&emsp; Sin embargo, esto solo hace que al momento de elegir qué archivo subir, solo aparezcan los archivos de tipo imagen. Esto es un avance, pero no es suficiente para evitar la carga de archivos indebidos. 
 
 #### 3.4 Mitigación
-&emsp;
+&emsp; En primer lugar, hacemos que el archivo `html` para la plantilla de carga solo acepte archivos de tipo imagen.
 
+![Plantilla actualizada](images/e3i3.png)
+&emsp; Luego, modificamos el endpoint de carga y agregamos una verificación para la extensión del archivo.
+
+![`PeliculaController` actualizado](images/e3i4.png)
+
+&emsp; Si creamos nuevamente el contenedor podemos ver que efectivamente, no se nos permite agregar el archivo `html` antes creado, y solo podremos subir imágenes.
+
+![Subimos el archivo incorrecto nuevamente](images/e3i5.png)
+![Pantalla de error](images/e3i6.png)
+![Afiches cargados correctamente](images/e3i7.png)
+
+#### 3.5 Fuentes
+**1.** https://www.vaadata.com/en/blog/file-upload-vulnerabilities-and-security-best-practices/#file-upload-exploitation-modes
+**2.** https://www.youtube.com/watch?v=MR1qmDLGMMo
+**3.** https://portswigger.net/web-security/file-upload#exploiting-file-upload-vulnerabilities-without-remote-code-execution7
+**4.** https://community.owasp.org/vulnerabilities/Unrestricted_File_Upload
 
 ### 4. Server Side Template Injection
 #### 4.1 Introducción
@@ -200,13 +238,23 @@
 
 &emsp; Luego de esto podemos actualizar el archivo `EncryptionService.java`, de modo que tenga un método para encriptar y otro para comparar las contraseñas ingresadas en los intentos de inicio de sesión y el hash original almacenado.
 
-&emsp; También deberemos cambiar la configuración de encriptación. Por ejemplo: `AES/GCM/PKCS7P`. A diferencia de ECB, GCM genera un vector de inicialización de modo que no haya patrones relevantes en la información encriptada generada por el proceso. Se recomienda que el IV sea de 12 bytes.
-&emsp; Por otro lado, debemos deshabilitar los métodos getters para la clave de encriptación en sí, su versión en hexadecimal y sus bytes.
+![Nuevo archivo `EncryptionService.java`](images/e5i5.png)
 
-&emsp; Luego de implementar estos cambios podemos esperar un proceso de encriptación mas robusto y un sistema más resistente a ataques externos.
+&emsp; Dentro del archivo AuthController.java solo debemos modificar los métodos de registro y de inicio de sesión de las siguientes maneras:
+
+![Nuevo método de registro](images/e5i6.png)
+
+&emsp; En este caso, llamamos al método de hasheo y eliminamos la línea de código que muestra la contraseña almacenada.
+
+![Nuevo método de inicio de sesión](images/e5i7.png)
+
+&emsp; Para el nuevo método de inicio de sesión simplemente llamamos al método `matches` del servicio de encriptación, y si es verdadero se otorga la sesión.
+
+&emsp; Luego de implementar estos cambios podemos esperar un sistema más robusto y resistente a ataques externos.
 
 #### 5.5 Fuentes
-**1.** https://support.google.com/faqs/answer/10046138?hl=en
-**2.** https://medium.com/@thomas_40553/how-to-secure-encrypt-and-decrypt-data-within-the-browser-with-aes-gcm-and-pbkdf2-057b839c96b6
-**3.** https://cwe.mitre.org/data/definitions/922.html
-**4.**https://medium.com/@dowglasmaia/protecting-sensitive-data-with-java-21-modern-security-best-practices-f61d41a9a5ce
+**1.** https://support.google.com/faqs/answer/10046138?hl=en </br>
+**2.** https://medium.com/@thomas_40553/how-to-secure-encrypt-and-decrypt-data-within-the-browser-with-aes-gcm-and-pbkdf2-057b839c96b6 </br>
+**3.** https://cwe.mitre.org/data/definitions/922.html </br>
+**4.** https://medium.com/@dowglasmaia/protecting-sensitive-data-with-java-21-modern-security-best-practices-f61d41a9a5ce </br>
+**5.** https://spring.io/projects/spring-security

@@ -86,6 +86,13 @@ public class PeliculaController {
             .orElseThrow(() -> new EntityNotFoundException("Pelicula no encontrada"));
 
         String filename = archivo.getOriginalFilename();
+        if (filename == null || 
+            !(filename.toLowerCase().endsWith(".jpg") || 
+            filename.toLowerCase().endsWith(".jpeg") || 
+            filename.toLowerCase().endsWith(".png"))) {
+                throw new IllegalArgumentException("Solo se permiten archivos de imagen");
+        }
+
         Path uploadPath = Paths.get(uploadDir);
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);

@@ -62,7 +62,6 @@ public class AuthController {
             return "index";
         }
 
-
         com.cinebuscador.model.User nuevoUsuario = new com.cinebuscador.model.User();
         nuevoUsuario.setUsername(username);
         nuevoUsuario.setPassword(EncryptionService.encode(password));
