@@ -134,10 +134,10 @@
 ![Afiches cargados correctamente](images/e3i7.png)
 
 #### 3.5 Fuentes
-**1.** https://www.vaadata.com/en/blog/file-upload-vulnerabilities-and-security-best-practices/#file-upload-exploitation-modes
-**2.** https://www.youtube.com/watch?v=MR1qmDLGMMo
-**3.** https://portswigger.net/web-security/file-upload#exploiting-file-upload-vulnerabilities-without-remote-code-execution7
-**4.** https://community.owasp.org/vulnerabilities/Unrestricted_File_Upload
+**1.** https://www.vaadata.com/en/blog/file-upload-vulnerabilities-and-security-best-practices/#file-upload-exploitation-modes </br>
+**2.** https://www.youtube.com/watch?v=MR1qmDLGMMo </br>
+**3.** https://portswigger.net/web-security/file-upload#exploiting-file-upload-vulnerabilities-without-remote-code-execution7 </br>
+**4.** https://community.owasp.org/vulnerabilities/Unrestricted_File_Upload </br>
 
 ### 4. Server Side Template Injection
 #### 4.1 Introducción
@@ -156,6 +156,7 @@
 &emsp; Podemos empezar por encontrar el lugar en el cual se concatena la búsqueda al mensaje "Resultados buscando por: ". Esto se encuentra en el archivo `FuncionController.java`, donde podemos ver que lo que se concatena es el resultado del objeto de clase `SpelEvaluator`.
 
 ![El archivo FuncionController](images/e4i2.png)
+
 &emsp; Dentro del archivo `SpelEvaluator.java` podremos encontrar un método que utiliza un `ExpressionParser` y un `StandardEvaluationContext`. Esto genera que, en primer lugar, cualquier cadena que se pase como parámetro al objeto `SpelEvaluator` sea considerada una expresión SpEL y, por lo tanto, sea ejecutada. Por otro lado, el hecho de que se utilice un `StandardEvaluationContext` hace que las expresiones evaluadas tengan acceso a todo el lenguaje SpEL. Los contextos de evaluación estándar nunca deben ser utilizados con entradas que provengan del exterior del sistema.
 
 ![La clase SpelEvaluator](images/e4i3.png)
@@ -166,9 +167,11 @@
 &emsp; En primer lugar, agregamos una expresión condicional, que verifique si la cadena ingresada por el usuario está conformada exclusivamente de caracteres alfanuméricos. Si esto es verdad, podremos pasarle la cadena al `ExpressionParser` con mayor tranquilidad. De lo contrario, no se deberá regresar ningún resultado, y se deberá avisar que se ingresaron símbolos inválidos.
 
 ![Mitigación en FuncionController](images/e4i4.png)
+
 &emsp; Por otro lado, en el caso de SpelEvaluator, podemos hacer uso de la variable context ya creada en el archivo, y deshabilitar el contexto estándar.
 
 ![Mitigación de SpelEvaluator](images/e4i5.png)
+
 &emsp; Al probar nuevamente la aplicación, podemos ver que si cualquier expresión que contenga símbolos más allá de letras y números no va a generar una búsqueda ni tampoco se ejecutará ninguna operación.
 
 ![La búsqueda es inválida](images/e4i6.png)
