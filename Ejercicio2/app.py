@@ -28,11 +28,11 @@ def buscar_funciones(query, sort_by='nombre', sort_dir='ASC'):
         f"peliculas.descripcion as descripcion, peliculas.id as id "
         f"FROM funciones "
         f"JOIN peliculas ON funciones.pelicula_id = peliculas.id "
-        f"WHERE peliculas.nombre LIKE '%{query}%' "
+        f"WHERE peliculas.nombre LIKE ? "
         f"ORDER BY {'peliculas.nombre' if sort_by == 'nombre' else 'funciones.fecha_hora'} "
         f"{sort_dir}"
     )
-    return db.execute(sql).fetchall()
+    return db.execute(sql, (f'%{query}%', )).fetchall()
 
 
 @app.route('/')

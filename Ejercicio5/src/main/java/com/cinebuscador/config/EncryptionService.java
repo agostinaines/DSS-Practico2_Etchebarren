@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 
+
+
 /**
  * Servicio de cifrado AES-256 para contraseñas.
  *
@@ -19,7 +21,7 @@ public class EncryptionService {
     // ============================================================
     // La clave AES-256 debe ser de exactamente 32 bytes.
     // Estática + en source code = cualquier atacante puede obtenerla.
-    private static final String SECRET_KEY = "MySup3rS3cr3tK3y!2024CineBuscadorAES";
+    private static final String SECRET_KEY = "";
 
     private static final SecretKeySpec secretKey;
 
