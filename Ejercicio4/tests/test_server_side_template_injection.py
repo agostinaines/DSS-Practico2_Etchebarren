@@ -44,20 +44,21 @@ def test_spel_expression_not_executed():
         "en lugar de tratarla como un texto de búsqueda."
     )
 
-# Este test verifica que una expresión que intenta acceder a variables del contexto SpEL no se evalúe durante el procesamiento de la búsqueda.
+# Este test verifica que una expresión que intenta realizar operaciones no se ejecute como tal.
 def test_expressions_with_spel_are_not_executed():
-    # Creamos una expresión que intentaría consultar una propiedad del sistema si se evaluara utilizando el contexto original.
-    attack = "#system.getProperty('user.home')"
+    # Este ataque simplemente hace que una palabra pase de minúscula a mayúscula, se pueden hacer cosas más peligrosas que eso.
+    # Para este ejemplo, si se encuentra la mayúscula en la respuesta del servidor, el evaluador de expresiones SPEL está funcionando cuando no debería.
+    attack = "'expression'.toUpperCase()"
+    result = "EXPRESSION"
 
     # Enviamos la expresión como parámetro de búsqueda al servidor y guardamos la respuesta.
     reply = search_function(attack)
 
+    # Comprobamos que el servidor procese la petición sin producir un error HTTP.
     assert reply.status_code == 200, (
         f"El servidor no procesó correctamente la búsqueda. "
         f"HTTP recibido: {reply.status_code}"
     )
 
-    # Comprobamos que el valor del atributo no se muestre como resultado de evaluar la expresión.
-    assert "spelOutput" not in reply.text, (
-        "La respuesta contiene el nombre del atributo de salida de SpEL."
-    )
+    # Verificamos que la expresión no aparezca en la respuesta del servidor.
+    assert result not in reply.text
