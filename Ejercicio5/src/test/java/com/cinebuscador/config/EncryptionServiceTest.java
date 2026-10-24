@@ -1,5 +1,8 @@
 /*
 Para ejecutar este test podemos utilizar los triángulos o símbolos de Play al lado de cada test o en la clase en general.
+
+No se realizaron test para AuthController.java porque todos los métodos siguen funcionando incluso cuando el tratamiento
+que se le da a las contraseñas no es el adecuado.
 */
 
 package com.cinebuscador.config;
