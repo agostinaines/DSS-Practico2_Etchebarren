@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
 import org.springframework.core.io.UrlResource;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,6 +24,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 @Controller
 public class PeliculaController {
@@ -91,6 +94,11 @@ public class PeliculaController {
             filename.toLowerCase().endsWith(".jpeg") || 
             filename.toLowerCase().endsWith(".png"))) {
                 throw new IllegalArgumentException("Solo se permiten archivos de imagen");
+        }
+
+        byte[] contenido = archivo.getBytes();
+        if (ImageIO.read(new ByteArrayInputStream(contenido)) == null) {
+            throw new IllegalArgumentException("Los archivos subidos deben ser imágenes válidas");
         }
 
         Path uploadPath = Paths.get(uploadDir);
